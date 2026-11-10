@@ -1,12 +1,11 @@
-import asyncio, websockets, json
-from datetime import datetime
+import asyncio, websockets, json, os
 
 DEVICES = {}
 CONTROLLERS = set()
 
 async def handle_device(ws, device_id, name):
     DEVICES[device_id] = {"ws": ws, "name": name}
-    print(f"[+] CELULAR: {device_id} ({name}) - Total: {len(DEVICES)}/50")
+    print(f"[+] {device_id} - Total: {len(DEVICES)}/50")
     try:
         async for msg in ws:
             data = json.loads(msg)
@@ -16,11 +15,9 @@ async def handle_device(ws, device_id, name):
                 except: CONTROLLERS.discard(ctrl)
     finally:
         DEVICES.pop(device_id, None)
-        print(f"[-] Saiu: {device_id} - Total: {len(DEVICES)}/50")
 
 async def handle_controller(ws):
     CONTROLLERS.add(ws)
-    print(f"[PC] Conectado - Celulares online: {len(DEVICES)}")
     await ws.send(json.dumps({"type": "device_list", "devices": list(DEVICES.keys())}))
     try:
         async for msg in ws:
@@ -39,8 +36,9 @@ async def handler(ws):
         await handle_controller(ws)
 
 async def main():
-    print("=== FAZENDA 50 CELULARES - 0.0.0.0:8765 ===")
-    async with websockets.serve(handler, "0.0.0.0", 8765, max_size=10_000_000):
+    port = int(os.environ.get("PORT", 8765))
+    print(f"Fazenda rodando na porta {port}")
+    async with websockets.serve(handler, "0.0.0.0", port, max_size=10_000_000):
         await asyncio.Future()
 
 asyncio.run(main())
