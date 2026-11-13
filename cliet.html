@@ -1,0 +1,16 @@
+<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{background:#000;color:#0f0;font-family:monospace;text-align:center;padding:30px}h1{font-size:26px}</style>
+</head><body>
+<h1>🚜 Fazenda-50 Cliente</h1>
+<p id="status">Conectando...</p>
+<p id="myid"></p>
+<script>
+let myId='cel-'+Math.random().toString(36).substr(2,6);
+document.getElementById('myid').innerText='ID: '+myId;
+let proto = location.protocol=='https:' ? 'wss://' : 'ws://';
+let ws = new WebSocket(proto + location.host + '/ws');
+ws.onopen=()=>{ws.send(JSON.stringify({type:'register_client',id:myId})); document.getElementById('status').innerText='✅ CONECTADO';}
+ws.onmessage=(e)=>{let d=JSON.parse(e.data); if(d.type=='cmd'){ if(d.cmd=='open_tiktok') location.href='https://www.tiktok.com'; if(d.cmd=='open_url' && d.url) location.href=d.url; } }
+ws.onclose=()=>{document.getElementById('status').innerText='❌ Desconectado, tentando de novo...'; setTimeout(()=>location.reload(),3000);}
+</script>
+</body></html>
